@@ -20,6 +20,26 @@ ggplot(data = dat, aes(x = x, y = y, color = z)) + geom_point()
 
 ###### implementation of DPM-GP ########
 K <- 20 # set the maximum number of clusters
-Z <- matrix(NA, nrow = nrow(dat), ncol = K)
+sigma <- 1
+alpha <- 1
+max_iter <- 100
+theta <- c(1, 0.005) # hyper-parameters for co-variance function
+N <- nrow(dat)
+# theta[1] is bandwidth and theta[2] is length_scale
 # randomly initialize Z
-
+Z <- matrix(runif(nrow(dat) * K), nrow = nrow(dat), ncol = K) 
+Z <- Z / rowSums(Z)
+# initialize covariance matrix for each cluster
+K <- as.matrix(dist(dat$x))
+K <- K * (-theta[2] / 2)
+K <- exp(K)
+K <- K * theta[1]
+mu <- matrix(NA, nrow = N, ncol = K)
+for (iter in 1:max_iter) {
+  for (k in 1:K) {
+    R <- diag(Z[, k]) / (sigma^2)
+    C <- solve(K + R)
+    mu[, k] <- (C %*% R) %*% matrix(dat$y, nrow = N, ncol = 1)
+  }
+  
+}
